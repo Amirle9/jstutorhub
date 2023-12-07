@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -11,16 +11,13 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
-    socket.on('code', (newCode) => {
-      setCode(newCode);
-    });
-    socket.on('codeUpdate', (newCode) => {
-      setCode(newCode);
-    });
+    socket.on('code', setCode);
+    socket.on('codeUpdate', setCode);
     socket.on('setRole', setRole);
 
     // Clean up event listeners when component unmounts
@@ -31,9 +28,27 @@ const CodeBlock = () => {
     };
   }, [title]);
 
+  const resizeTextarea = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    resizeTextarea();
+  }, [code, role]);
+
+  useEffect(() => {
+    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
+    return () => {
+      window.removeEventListener('resize', resizeTextarea);
+    };
+  }, []);
+
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
+    setCode(updatedCode);
     
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
@@ -64,36 +79,38 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',
+        minHeight: '400px',         // Set a minimum height for the container
         overflow: 'auto',
       }}>
-        <textarea
-          style={{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            minHeight: '200px',
-            resize: 'none',
-            border: 'none',
-            padding: '10px',
-            fontFamily: 'monospace',
-            fontSize: '16px',
-            lineHeight: '1.5',
-            background: 'none',
-            color: role === 'mentor' ? 'rgba(0, 0, 0, 0)' : 'white', // Transparent for mentor, visible for student
-            caretColor: 'white',
-            outline: 'none',
-            zIndex: '1',
-            overflow: 'hidden',
-            boxSizing: 'border-box',
-          }}
-          value={code}
-          onChange={handleCodeChange}
-          readOnly={role === 'mentor'} // Read-only if the user is a mentor
-          spellCheck="false"
-        />
-        <SyntaxHighlighter
+        {role === 'student' && (
+          <textarea
+            ref={textareaRef}
+            style={{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              minHeight: '200px',
+              resize: 'none',
+              border: 'none',
+              padding: '10px',
+              fontFamily: 'monospace',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              background: 'none',
+              color: 'rgba(0, 0, 0, 0)',
+              caretColor: 'white',
+              outline: 'none',
+              zIndex: '1',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+            }}
+            value={code}
+            onChange={handleCodeChange}
+            spellCheck="false"
+          />
+        )}
+        <SyntaxHighlighter                      //display styled syntax.
           language="javascript"
           style={atomDark}
           customStyle={{
