@@ -8,47 +8,27 @@ const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001');
 
 const CodeBlock = () => {
   const { title } = useParams();
-  const [code, setCode] = useState('');
   const [role, setRole] = useState('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
-    socket.on('code', setCode);
-    socket.on('codeUpdate', setCode);
+    socket.on('code', (newCode) => {
+      if (textareaRef.current) {
+        textareaRef.current.value = newCode;
+      }
+    });
     socket.on('setRole', setRole);
 
-    // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
-      socket.off('codeUpdate');
       socket.off('setRole');
     };
   }, [title]);
 
-  const resizeTextarea = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  };
-
-  useEffect(() => {
-    resizeTextarea();
-  }, [code, role]);
-
-  useEffect(() => {
-    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
-    return () => {
-      window.removeEventListener('resize', resizeTextarea);
-    };
-  }, []);
-
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode);
-    
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
@@ -84,6 +64,8 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
+            defaultValue=""
+            onChange={handleCodeChange}
             style={{
               position: 'absolute',
               top: '0',
@@ -104,12 +86,10 @@ const CodeBlock = () => {
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
-            value={code}
-            onChange={handleCodeChange}
             spellCheck="false"
           />
         )}
-        <SyntaxHighlighter                      //display styled syntax.
+        <SyntaxHighlighter
           language="javascript"
           style={atomDark}
           customStyle={{
@@ -134,7 +114,7 @@ const CodeBlock = () => {
             }
           }}
         >
-          {code}
+          {textareaRef.current ? textareaRef.current.value : ''}
         </SyntaxHighlighter>
       </div>
     </div>
