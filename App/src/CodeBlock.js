@@ -11,7 +11,7 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const codeRef = useRef('');
+  const codeRef = useRef(''); 
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -92,7 +92,6 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={codeRef.current}
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
@@ -114,7 +113,8 @@ const CodeBlock = () => {
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
-            //value={code}
+            value={code}
+            
             spellCheck="false"
           />
         )}
