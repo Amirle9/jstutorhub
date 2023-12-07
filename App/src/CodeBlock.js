@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+// Connect to the server
 const SERVER_URL = process.env.NODE_ENV === 'production' ? 'https://jstutorhub-production.up.railway.app/' : 'http://localhost:3001';
 const socket = io(SERVER_URL);
 
@@ -11,57 +12,28 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const codeRef = useRef('');
-  const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
+    // Update local state when new code is received
     socket.on('code', (newCode) => {
       setCode(newCode);
-      codeRef.current = newCode; // Also update the ref
-      if (textareaRef.current && role === 'student') {
-        textareaRef.current.value = newCode; // Update the textarea for the student
-      }
     });
-    socket.on('updateCode', ({ title, code }) => {
-      if (socket.id !== codeBlockMentors[title]) { // Only students can update
-        codeBlocks[title] = code;
-        socket.to(title).emit('codeUpdate', code); // Use socket.to to broadcast to the room except sender
-      }
-    });
+
     socket.on('setRole', setRole);
 
-    // Clean up event listeners when component unmounts
+    // Clean up event listeners when the component unmounts
     return () => {
       socket.off('code');
-      socket.off('codeUpdate');
       socket.off('setRole');
     };
-  }, [title, role]);
+  }, [title]);
 
-  const resizeTextarea = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  };
-
-  useEffect(() => {
-    resizeTextarea();
-  }, [code, role]);
-
-  useEffect(() => {
-    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
-    return () => {
-      window.removeEventListener('resize', resizeTextarea);
-    };
-  }, []);
-
+  // Handle code changes made by the student and emit changes to the server
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    codeRef.current = updatedCode; // Update the ref
-    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
+    setCode(updatedCode); // Update local state
 
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
@@ -71,8 +43,8 @@ const CodeBlock = () => {
   return (
     <div style={{
       fontFamily: '"Source Code Pro", monospace',
-      width: '90%', 
-      maxWidth: 'none', 
+      width: '90%',
+      maxWidth: 'none',
       margin: '40px auto',
       padding: '20px',
       backgroundColor: '#252526',
@@ -92,14 +64,11 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',         // Set a minimum height for the container
+        minHeight: '400px',
         overflow: 'auto',
       }}>
-        {role === 'student' && (
+        {role === 'student' ? (
           <textarea
-            ref={textareaRef}
-            defaultValue={codeRef.current}
-            onChange={handleCodeChange}
             style={{
               position: 'absolute',
               top: '0',
@@ -113,18 +82,32 @@ const CodeBlock = () => {
               fontSize: '16px',
               lineHeight: '1.5',
               background: 'none',
-              color: 'rgba(0, 0, 0, 0)',
+              color: 'white',
               caretColor: 'white',
               outline: 'none',
               zIndex: '1',
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
-            //value={code}
+            value={code}
+            onChange={handleCodeChange}
             spellCheck="false"
           />
+        ) : (
+          <div
+            style={{
+              fontFamily: 'monospace',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              color: 'white',
+              whiteSpace: 'pre-wrap',
+              padding: '10px',
+            }}
+          >
+            {code}
+          </div>
         )}
-        <SyntaxHighlighter                      //display styled syntax.
+        <SyntaxHighlighter
           language="javascript"
           style={atomDark}
           customStyle={{
