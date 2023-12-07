@@ -4,34 +4,51 @@ import io from 'socket.io-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001');
+const socket = io('http://localhost:3001'); // Initialize socket connection to server.
 
 const CodeBlock = () => {
   const { title } = useParams();
-  const [code, setCode] = useState(''); // State to keep track of the code content
+  const [code, setCode] = useState('');
   const [role, setRole] = useState('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
-    socket.on('code', (newCode) => {
-      setCode(newCode); // Update the code state when new code is received
-      if (textareaRef.current && role === 'student') {
-        textareaRef.current.value = newCode; // Update the textarea for the student
-      }
-    });
+    socket.on('code', setCode);
+    socket.on('codeUpdate', setCode);
     socket.on('setRole', setRole);
 
+    // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
+      socket.off('codeUpdate');
       socket.off('setRole');
     };
   }, [title]);
 
+  const resizeTextarea = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    resizeTextarea();
+  }, [code, role]);
+
+  useEffect(() => {
+    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
+    return () => {
+      window.removeEventListener('resize', resizeTextarea);
+    };
+  }, []);
+
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode); // Update the code state on change
+    setCode(updatedCode);
+    
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
@@ -61,27 +78,60 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',
+        minHeight: '400px',         // Set a minimum height for the container
         overflow: 'auto',
       }}>
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={code}
-            onChange={handleCodeChange}
             style={{
-              // ... styles
-              color: '#ffffff', // Ensure the text color is visible
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              minHeight: '200px',
+              resize: 'none',
+              border: 'none',
+              padding: '10px',
+              fontFamily: 'monospace',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              background: 'none',
+              color: 'rgba(0, 0, 0, 0)',
+              caretColor: 'white',
+              outline: 'none',
+              zIndex: '1',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
             }}
+            value={code}
+            onChange={handleCodeChange}
             spellCheck="false"
           />
         )}
-        {/* Always render SyntaxHighlighter to show highlighted code */}
-        <SyntaxHighlighter
+        <SyntaxHighlighter                      //display styled syntax.
           language="javascript"
           style={atomDark}
           customStyle={{
-            // ... styles
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            minHeight: '200px',
+            padding: '10px',
+            margin: '0',
+            borderRadius: '4px',
+            background: '#282a36',
+            zIndex: '0',
+            boxSizing: 'border-box',
+          }}
+          codeTagProps={{
+            style: {
+              lineHeight: '1.5',
+              fontSize: '16px',
+              fontFamily: 'monospace',
+              whiteSpace: 'pre-wrap',
+            }
           }}
         >
           {code}
