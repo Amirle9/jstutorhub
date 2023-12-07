@@ -60,15 +60,21 @@ const CodeBlock = () => {
     }
   }, [code, role, cursorPosition]);
 
-  const handleCodeChange = event => {
+  const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode);
     setCursorPosition(event.target.selectionStart); // Update cursor position on change
+    setCode(updatedCode);
+  };
 
+  const debouncedCodeUpdate = useRef(debounce((updatedCode) => {
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
-  };
+  }, 300)).current;
+
+  useEffect(() => {
+    debouncedCodeUpdate(code);
+  }, [code]);
 
   return (
     <div style={{
