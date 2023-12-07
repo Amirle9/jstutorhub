@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -46,6 +47,12 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });
+});
+
+app.use(express.static(path.join(__dirname, 'App/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'App/build/index.html'));
 });
 
 const PORT = process.env.PORT || 3001;

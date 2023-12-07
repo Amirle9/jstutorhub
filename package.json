@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build-client": "cd App && npm install && npm run build",
+    "postinstall": "npm run build-client"
   },
   "keywords": [],
   "author": "",
