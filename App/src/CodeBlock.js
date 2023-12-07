@@ -11,28 +11,23 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const codeRef = useRef(''); 
   const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
-    socket.on('code', (newCode) => {
-      setCode(newCode);
-      codeRef.current = newCode; // Also update the ref
-      if (textareaRef.current && role === 'student') {
-        textareaRef.current.value = newCode; // Update the textarea for the student
-      }
-    });
+    socket.on('code', setCode);
+    socket.on('codeUpdate', setCode);
     socket.on('setRole', setRole);
 
     // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
       socket.off('codeUpdate');
+      socket.on('codeUpdate', setCode);
       socket.off('setRole');
     };
-  }, [title, role]);
+  }, [title]);
 
   const resizeTextarea = () => {
     if (textareaRef.current) {
@@ -54,8 +49,7 @@ const CodeBlock = () => {
 
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    codeRef.current = updatedCode; // Update the ref
-    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
+    setCode(updatedCode);
 
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
@@ -92,8 +86,6 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={codeRef.current}
-            onChange={handleCodeChange}
             style={{
               position: 'absolute',
               top: '0',
@@ -115,7 +107,7 @@ const CodeBlock = () => {
               boxSizing: 'border-box',
             }}
             value={code}
-            
+            onChange={handleCodeChange}
             spellCheck="false"
           />
         )}
