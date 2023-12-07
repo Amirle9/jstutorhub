@@ -12,7 +12,6 @@ const CodeBlock = () => {
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
   const [studentCode, setStudentCode] = useState(''); // New state for student's code
-  const codeRef = useRef('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
