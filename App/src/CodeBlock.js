@@ -11,7 +11,7 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const [studentCode, setStudentCode] = useState(''); 
+  const [studentCode, setStudentCode] = useState(''); // New state for student's code
   const codeRef = useRef('');
   const textareaRef = useRef(null);
 
@@ -50,7 +50,7 @@ const CodeBlock = () => {
   }, [code, role]);
 
   useEffect(() => {
-    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
+    window.addEventListener('resize', resizeTextarea);
     return () => {
       window.removeEventListener('resize', resizeTextarea);
     };
@@ -67,8 +67,8 @@ const CodeBlock = () => {
   return (
     <div style={{
       fontFamily: '"Source Code Pro", monospace',
-      width: '90%', 
-      maxWidth: 'none', 
+      width: '90%',
+      maxWidth: 'none',
       margin: '40px auto',
       padding: '20px',
       backgroundColor: '#252526',
@@ -88,13 +88,13 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',         // Set a minimum height for the container
+        minHeight: '400px',
         overflow: 'auto',
       }}>
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={studentCode}
+            defaultValue={studentCode} // Use student's code in the textarea
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
@@ -116,11 +116,10 @@ const CodeBlock = () => {
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
-            //value={code}
             spellCheck="false"
           />
         )}
-        <SyntaxHighlighter                      //display styled syntax.
+        <SyntaxHighlighter
           language="javascript"
           style={atomDark}
           customStyle={{
@@ -145,7 +144,7 @@ const CodeBlock = () => {
             }
           }}
         >
-          {role === 'mentor' ? code : studentCode}
+          {role === 'mentor' ? code : studentCode} {/* Use mentor's code if role is mentor */}
         </SyntaxHighlighter>
       </div>
     </div>
