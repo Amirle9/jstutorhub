@@ -7,40 +7,23 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 const SERVER_URL = process.env.NODE_ENV === 'production' ? 'https://jstutorhub-production.up.railway.app/' : 'http://localhost:3001';
 const socket = io(SERVER_URL);
 
-const debounce = (func, delay) => {
-  let debounceTimer;
-  return function() {
-    const context = this;
-    const args = arguments;
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => func.apply(context, args), delay);
-  };
-};
-
 const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
   const textareaRef = useRef(null);
-  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
     socket.emit('join', title);
-    const handleCodeUpdate = newCode => {
-      // Update cursor position before setting the code
-      if (textareaRef.current) {
-        setCursorPosition(textareaRef.current.selectionStart);
-      }
-      setCode(newCode);
-    };    
-    socket.on('code', handleCodeUpdate);
-    socket.on('codeUpdate', handleCodeUpdate);
+
+    socket.on('code', setCode);
+    socket.on('codeUpdate', setCode);
     socket.on('setRole', setRole);
 
     // Clean up event listeners when component unmounts
     return () => {
-      socket.off('code', handleCodeUpdate);
-      socket.off('codeUpdate', handleCodeUpdate);
+      socket.off('code');
+      socket.off('codeUpdate');
       socket.off('setRole');
     };
   }, [title]);
@@ -63,28 +46,14 @@ const CodeBlock = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Update the cursor position after code update
-    if (textareaRef.current && role === 'student') {
-      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
-    }
-  }, [code, role, cursorPosition]);
-
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCursorPosition(event.target.selectionStart); // Update cursor position on change
     setCode(updatedCode);
-  };
-
-  const debouncedCodeUpdate = useRef(debounce((updatedCode) => {
+    
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
-  }, 300)).current;
-
-  useEffect(() => {
-    debouncedCodeUpdate(code);
-  }, [code]);
+  };
 
   return (
     <div style={{
