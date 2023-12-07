@@ -24,6 +24,12 @@ const CodeBlock = () => {
         textareaRef.current.value = newCode; // Update the textarea for the student
       }
     });
+    socket.on('updateCode', ({ title, code }) => {
+      if (socket.id !== codeBlockMentors[title]) { // Only students can update
+        codeBlocks[title] = code;
+        socket.to(title).emit('codeUpdate', code); // Use socket.to to broadcast to the room except sender
+      }
+    });
     socket.on('setRole', setRole);
 
     // Clean up event listeners when component unmounts
@@ -92,7 +98,7 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={codeRef.current}
+            defaultValue={code}
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
@@ -140,6 +146,7 @@ const CodeBlock = () => {
               fontSize: '16px',
               fontFamily: 'monospace',
               whiteSpace: 'pre-wrap',
+              color: 'white',
             }
           }}
         >
