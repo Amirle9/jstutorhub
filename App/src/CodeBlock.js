@@ -11,6 +11,7 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
+  const [studentCode, setStudentCode] = useState(''); 
   const codeRef = useRef('');
   const textareaRef = useRef(null);
 
@@ -18,10 +19,13 @@ const CodeBlock = () => {
     socket.emit('join', title);
 
     socket.on('code', (newCode) => {
-      setCode(newCode);
-      codeRef.current = newCode; // Also update the ref
-      if (textareaRef.current && role === 'student') {
-        textareaRef.current.value = newCode; // Update the textarea for the student
+      if (role === 'mentor') {
+        setCode(newCode); // Update the mentor's code
+      } else {
+        setStudentCode(newCode); // Update the student's code
+        if (textareaRef.current && role === 'student') {
+          textareaRef.current.value = newCode; // Update the textarea for the student
+        }
       }
     });
     socket.on('setRole', setRole);
@@ -54,9 +58,7 @@ const CodeBlock = () => {
 
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    codeRef.current = updatedCode; // Update the ref
-    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
-
+    setStudentCode(updatedCode); // Update the student's code
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
@@ -92,7 +94,7 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={codeRef.current}
+            defaultValue={studentCode}
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
@@ -143,7 +145,7 @@ const CodeBlock = () => {
             }
           }}
         >
-          {code}
+          {role === 'mentor' ? code : studentCode}
         </SyntaxHighlighter>
       </div>
     </div>
