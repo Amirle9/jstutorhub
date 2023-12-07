@@ -12,18 +12,25 @@ const CodeBlock = () => {
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
   const textareaRef = useRef(null);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
     socket.emit('join', title);
-
-    socket.on('code', setCode);
-    socket.on('codeUpdate', setCode);
+    const handleCodeUpdate = newCode => {
+      // Update cursor position before setting the code
+      if (textareaRef.current) {
+        setCursorPosition(textareaRef.current.selectionStart);
+      }
+      setCode(newCode);
+    };    
+    socket.on('code', handleCodeUpdate);
+    socket.on('codeUpdate', handleCodeUpdate);
     socket.on('setRole', setRole);
 
     // Clean up event listeners when component unmounts
     return () => {
-      socket.off('code');
-      socket.off('codeUpdate');
+      socket.off('code', handleCodeUpdate);
+      socket.off('codeUpdate', handleCodeUpdate);
       socket.off('setRole');
     };
   }, [title]);
@@ -46,10 +53,18 @@ const CodeBlock = () => {
     };
   }, []);
 
-  const handleCodeChange = (event) => {
+  useEffect(() => {
+    // Update the cursor position after code update
+    if (textareaRef.current && role === 'student') {
+      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [code, role, cursorPosition]);
+
+  const handleCodeChange = event => {
     const updatedCode = event.target.value;
     setCode(updatedCode);
-    
+    setCursorPosition(event.target.selectionStart); // Update cursor position on change
+
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
