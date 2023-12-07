@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const socket = io('http://localhost:3001'); // Initialize socket connection to server.
+const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001');
 
 const CodeBlock = () => {
   const { title } = useParams();
