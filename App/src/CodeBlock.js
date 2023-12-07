@@ -24,6 +24,7 @@ const CodeBlock = () => {
         setStudentCode(newCode); // Update the student's code
         if (textareaRef.current && role === 'student') {
           textareaRef.current.value = newCode; // Update the textarea for the student
+          setCode(newCode); // Update the mentor's code as well
         }
       }
     });
@@ -58,6 +59,7 @@ const CodeBlock = () => {
     setStudentCode(updatedCode); // Update the student's code
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
+      setCode(updatedCode); // Update the mentor's code as well
     }
   };
 
