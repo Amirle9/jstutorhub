@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// Connect to the server
 const SERVER_URL = process.env.NODE_ENV === 'production' ? 'https://jstutorhub-production.up.railway.app/' : 'http://localhost:3001';
 const socket = io(SERVER_URL);
 
@@ -12,28 +11,51 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
+  const codeRef = useRef('');
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
-    // Update local state when new code is received
     socket.on('code', (newCode) => {
       setCode(newCode);
+      codeRef.current = newCode; // Also update the ref
+      if (textareaRef.current && role === 'student') {
+        textareaRef.current.value = newCode; // Update the textarea for the student
+      }
     });
-
     socket.on('setRole', setRole);
 
-    // Clean up event listeners when the component unmounts
+    // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
+      socket.off('codeUpdate');
       socket.off('setRole');
     };
-  }, [title]);
+  }, [title, role]);
 
-  // Handle code changes made by the student and emit changes to the server
+  const resizeTextarea = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    resizeTextarea();
+  }, [code, role]);
+
+  useEffect(() => {
+    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
+    return () => {
+      window.removeEventListener('resize', resizeTextarea);
+    };
+  }, []);
+
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode); // Update local state
+    codeRef.current = updatedCode; // Update the ref
+    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
 
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
@@ -43,8 +65,8 @@ const CodeBlock = () => {
   return (
     <div style={{
       fontFamily: '"Source Code Pro", monospace',
-      width: '90%',
-      maxWidth: 'none',
+      width: '90%', 
+      maxWidth: 'none', 
       margin: '40px auto',
       padding: '20px',
       backgroundColor: '#252526',
@@ -64,11 +86,14 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',
+        minHeight: '400px',         // Set a minimum height for the container
         overflow: 'auto',
       }}>
-        {role === 'student' ? (
+        {role === 'student' && (
           <textarea
+            ref={textareaRef}
+            defaultValue={codeRef.current}
+            onChange={handleCodeChange}
             style={{
               position: 'absolute',
               top: '0',
@@ -82,32 +107,18 @@ const CodeBlock = () => {
               fontSize: '16px',
               lineHeight: '1.5',
               background: 'none',
-              color: 'white',
+              color: 'rgba(0, 0, 0, 0)',
               caretColor: 'white',
               outline: 'none',
               zIndex: '1',
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
-            value={code}
-            onChange={handleCodeChange}
+            //value={code}
             spellCheck="false"
           />
-        ) : (
-          <div
-            style={{
-              fontFamily: 'monospace',
-              fontSize: '16px',
-              lineHeight: '1.5',
-              color: 'white',
-              whiteSpace: 'pre-wrap',
-              padding: '10px',
-            }}
-          >
-            {code}
-          </div>
         )}
-        <SyntaxHighlighter
+        <SyntaxHighlighter                      //display styled syntax.
           language="javascript"
           style={atomDark}
           customStyle={{
@@ -129,7 +140,6 @@ const CodeBlock = () => {
               fontSize: '16px',
               fontFamily: 'monospace',
               whiteSpace: 'pre-wrap',
-              color: 'white',
             }
           }}
         >
