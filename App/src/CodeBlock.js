@@ -11,21 +11,17 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const [studentCode, setStudentCode] = useState('');
+  const codeRef = useRef('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
     socket.emit('join', title);
 
     socket.on('code', (newCode) => {
-      if (role === 'mentor') {
-        setCode(newCode); // Update the mentor's code
-      } else {
-        setStudentCode(newCode); // Update the student's code
-        if (textareaRef.current && role === 'student') {
-          textareaRef.current.value = newCode; // Update the textarea for the student
-          setCode(newCode); // Update the mentor's code as well
-        }
+      setCode(newCode);
+      codeRef.current = newCode; // Also update the ref
+      if (textareaRef.current && role === 'student') {
+        textareaRef.current.value = newCode; // Update the textarea for the student
       }
     });
     socket.on('setRole', setRole);
@@ -33,22 +29,24 @@ const CodeBlock = () => {
     // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
+      socket.off('codeUpdate');
       socket.off('setRole');
     };
   }, [title, role]);
 
+  const resizeTextarea = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
   useEffect(() => {
-    const resizeTextarea = () => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-      }
-    };
-
     resizeTextarea();
+  }, [code, role]);
 
-    window.addEventListener('resize', resizeTextarea);
-
+  useEffect(() => {
+    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
     return () => {
       window.removeEventListener('resize', resizeTextarea);
     };
@@ -56,18 +54,19 @@ const CodeBlock = () => {
 
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
-    setStudentCode(updatedCode); // Update the student's code
+    codeRef.current = updatedCode; // Update the ref
+    setCode(updatedCode); // Update the state to trigger re-render for SyntaxHighlighter
+
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
-      setCode(updatedCode); // Update the mentor's code as well
     }
   };
 
   return (
     <div style={{
       fontFamily: '"Source Code Pro", monospace',
-      width: '90%',
-      maxWidth: 'none',
+      width: '90%', 
+      maxWidth: 'none', 
       margin: '40px auto',
       padding: '20px',
       backgroundColor: '#252526',
@@ -87,13 +86,13 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',
+        minHeight: '400px',         // Set a minimum height for the container
         overflow: 'auto',
       }}>
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            value={studentCode} // Use student's code in the textarea
+            defaultValue={codeRef.current}
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
@@ -115,10 +114,11 @@ const CodeBlock = () => {
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
+            //value={code}
             spellCheck="false"
           />
         )}
-        <SyntaxHighlighter
+        <SyntaxHighlighter                      //display styled syntax.
           language="javascript"
           style={atomDark}
           customStyle={{
@@ -143,7 +143,7 @@ const CodeBlock = () => {
             }
           }}
         >
-          {role === 'mentor' ? code : studentCode} {/* Use mentor's code if role is mentor */}
+          {code}
         </SyntaxHighlighter>
       </div>
     </div>
