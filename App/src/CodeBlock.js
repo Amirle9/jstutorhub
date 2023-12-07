@@ -8,6 +8,7 @@ const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001');
 
 const CodeBlock = () => {
   const { title } = useParams();
+  const [code, setCode] = useState(''); // State to keep track of the code content
   const [role, setRole] = useState('');
   const textareaRef = useRef(null);
 
@@ -15,8 +16,9 @@ const CodeBlock = () => {
     socket.emit('join', title);
 
     socket.on('code', (newCode) => {
-      if (textareaRef.current) {
-        textareaRef.current.value = newCode;
+      setCode(newCode); // Update the code state when new code is received
+      if (textareaRef.current && role === 'student') {
+        textareaRef.current.value = newCode; // Update the textarea for the student
       }
     });
     socket.on('setRole', setRole);
@@ -29,6 +31,7 @@ const CodeBlock = () => {
 
   const handleCodeChange = (event) => {
     const updatedCode = event.target.value;
+    setCode(updatedCode); // Update the code state on change
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
@@ -58,63 +61,30 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px',         // Set a minimum height for the container
+        minHeight: '400px',
         overflow: 'auto',
       }}>
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue=""
+            defaultValue={code}
             onChange={handleCodeChange}
             style={{
-              position: 'absolute',
-              top: '0',
-              left: '0',
-              width: '100%',
-              minHeight: '200px',
-              resize: 'none',
-              border: 'none',
-              padding: '10px',
-              fontFamily: 'monospace',
-              fontSize: '16px',
-              lineHeight: '1.5',
-              background: 'none',
-              color: '#ffffff',
-              caretColor: 'white',
-              outline: 'none',
-              zIndex: '1',
-              overflow: 'hidden',
-              boxSizing: 'border-box',
+              // ... styles
+              color: '#ffffff', // Ensure the text color is visible
             }}
             spellCheck="false"
           />
         )}
+        {/* Always render SyntaxHighlighter to show highlighted code */}
         <SyntaxHighlighter
           language="javascript"
           style={atomDark}
           customStyle={{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            minHeight: '200px',
-            padding: '10px',
-            margin: '0',
-            borderRadius: '4px',
-            background: '#282a36',
-            zIndex: '0',
-            boxSizing: 'border-box',
-          }}
-          codeTagProps={{
-            style: {
-              lineHeight: '1.5',
-              fontSize: '16px',
-              fontFamily: 'monospace',
-              whiteSpace: 'pre-wrap',
-            }
+            // ... styles
           }}
         >
-          {textareaRef.current ? textareaRef.current.value : ''}
+          {code}
         </SyntaxHighlighter>
       </div>
     </div>
