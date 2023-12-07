@@ -11,7 +11,7 @@ const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
   const [role, setRole] = useState('');
-  const [studentCode, setStudentCode] = useState(''); // New state for student's code
+  const [studentCode, setStudentCode] = useState('');
   const textareaRef = useRef(null);
 
   useEffect(() => {
@@ -32,24 +32,22 @@ const CodeBlock = () => {
     // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
-      socket.off('codeUpdate');
       socket.off('setRole');
     };
   }, [title, role]);
 
-  const resizeTextarea = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  };
-
   useEffect(() => {
+    const resizeTextarea = () => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      }
+    };
+
     resizeTextarea();
-  }, [code, role]);
 
-  useEffect(() => {
     window.addEventListener('resize', resizeTextarea);
+
     return () => {
       window.removeEventListener('resize', resizeTextarea);
     };
@@ -93,7 +91,7 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={studentCode} // Use student's code in the textarea
+            value={studentCode} // Use student's code in the textarea
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
