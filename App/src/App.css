@@ -1,9 +1,9 @@
-/* App.css */
+
 body, html {
   height: 100%;
   margin: 0;
-  font-family: 'Source Code Pro', monospace; /* A font that is great for code editors */
-  background-color: #1e1e1e; /* A dark theme background */
+  font-family: 'Source Code Pro', monospace; 
+  background-color: #1e1e1e;      /* A dark mode background */
   color: #ffffff;
 }
 
@@ -17,36 +17,36 @@ ul {
   padding: 0;
   display: flex;
   justify-content: center;
-  gap: 10px; /* Adds space between list items */
+  gap: 10px;                        /* Adds space between list items */
 }
 
 li {
   padding: 10px 15px;
   margin: 0;
-  background-color: #007acc; /* A blue color for the active item */
+  background-color: #007acc; 
   color: white;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s; /* Smooth transition for hover effect */
+  transition: background-color 0.3s;            /* Smooth transition for hover effect */
 }
 
 li:hover {
-  background-color: #005a9e; /* Darker blue on hover */
+  background-color: #005a9e;                  /* Darker blue on hover */
 }
 
 li a {
   text-decoration: none;
-  color: inherit; /* Ensures links are white like the list items */
+  color: inherit;                           /* Ensures links are white like the list items */
   display: block;
 }
 
 textarea {
   width: 100%;
-  height: auto; /* Height will be adjusted by JavaScript */
-  background-color: #1e1e1e; /* Match the body background */
-  color: #dcdcdc; /* Slightly lighter text color for contrast */
+  height: auto; 
+  background-color: #1e1e1e; 
+  color: #dcdcdc;
   border: none;
   padding: 20px;
   border-radius: 5px;
-  resize: vertical; /* Only allow vertical resizing */
+  resize: vertical; 
 }

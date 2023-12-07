@@ -1,10 +1,11 @@
-// App.js
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import CodeBlock from './CodeBlock';
 import './App.css';
 
 function App() {
+  // Array of code blocks titles to be navigated to.
   const codeBlocks = ['Async Case', 'Data Structures and Algorithms', 'Design Patterns', 'Others'];
 
   return (

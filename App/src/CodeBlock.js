@@ -78,7 +78,7 @@ const CodeBlock = () => {
         backgroundColor: '#282a36',
         borderRadius: '4px',
         padding: '10px',
-        minHeight: '400px', // Set a minimum height for the container
+        minHeight: '400px',         // Set a minimum height for the container
         overflow: 'auto',
       }}>
         {role === 'student' && (
@@ -109,7 +109,7 @@ const CodeBlock = () => {
             spellCheck="false"
           />
         )}
-        <SyntaxHighlighter              //display styled syntax.
+        <SyntaxHighlighter                      //display styled syntax.
           language="javascript"
           style={atomDark}
           customStyle={{
