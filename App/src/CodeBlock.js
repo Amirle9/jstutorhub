@@ -7,6 +7,16 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 const SERVER_URL = process.env.NODE_ENV === 'production' ? 'https://jstutorhub-production.up.railway.app/' : 'http://localhost:3001';
 const socket = io(SERVER_URL);
 
+const debounce = (func, delay) => {
+  let debounceTimer;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+};
+
 const CodeBlock = () => {
   const { title } = useParams();
   const [code, setCode] = useState('');
