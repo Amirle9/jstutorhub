@@ -8,13 +8,13 @@ const path = require('path');
 const app = express();
 app.use(cors());
 
-const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://your-client-app-url"],
     methods: ["GET", "POST"]
   }
 });
+
 
 let codeBlocks = {
   'Async Case': '// Async code here',
