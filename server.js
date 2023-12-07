@@ -10,7 +10,7 @@ app.use(cors());
 
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://your-client-app-url"],
+    origin: ["http://localhost:3000", "https://jstutorhub-production.up.railway.app/"],
     methods: ["GET", "POST"]
   }
 });
