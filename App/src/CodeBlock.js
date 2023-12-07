@@ -15,45 +15,36 @@ const CodeBlock = () => {
   useEffect(() => {
     socket.emit('join', title);
 
-    socket.on('code', setCode);
-    socket.on('codeUpdate', setCode);
+    const handleCodeUpdate = newCode => {
+      if (textareaRef.current && role === 'student') {
+        const { selectionStart, selectionEnd } = textareaRef.current;
+        setCode(newCode);
+        setTimeout(() => {
+          textareaRef.current.setSelectionRange(selectionStart, selectionEnd);
+        }, 0);
+      } else {
+        setCode(newCode);
+      }
+    };
+
+    socket.on('code', handleCodeUpdate);
+    socket.on('codeUpdate', handleCodeUpdate);
     socket.on('setRole', setRole);
 
-    // Clean up event listeners when component unmounts
     return () => {
       socket.off('code');
       socket.off('codeUpdate');
       socket.off('setRole');
     };
-  }, [title]);
+  }, [title, role]);
 
-  const resizeTextarea = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  };
-
-  useEffect(() => {
-    resizeTextarea();
-  }, [code, role]);
-
-  useEffect(() => {
-    window.addEventListener('resize', resizeTextarea);              //resize the textarea when the window resizes.
-    return () => {
-      window.removeEventListener('resize', resizeTextarea);
-    };
-  }, []);
-
-  const handleCodeChange = (event) => {
+  const handleCodeChange = useCallback((event) => {
     const updatedCode = event.target.value;
-    setCode(updatedCode);
-    
     if (role === 'student') {
       socket.emit('updateCode', { title, code: updatedCode });
     }
-  };
-
+  }, [title, role]);
+  
   return (
     <div style={{
       fontFamily: '"Source Code Pro", monospace',
