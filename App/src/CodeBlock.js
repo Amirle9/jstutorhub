@@ -79,7 +79,7 @@ const CodeBlock = () => {
               fontSize: '16px',
               lineHeight: '1.5',
               background: 'none',
-              color: 'rgba(0, 0, 0, 0)',
+              color: '#ffffff',
               caretColor: 'white',
               outline: 'none',
               zIndex: '1',
