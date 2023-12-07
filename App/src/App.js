@@ -5,7 +5,7 @@ import CodeBlock from './CodeBlock';
 import './App.css';
 
 function App() {
-  const codeBlocks = ['Async Case', 'Promise Example', 'Callback Function', 'Event Loop'];
+  const codeBlocks = ['Async Case', 'Data Structures and Algorithms', 'Design Patterns', 'Others'];
 
   return (
     <Router>

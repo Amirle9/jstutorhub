@@ -1,4 +1,4 @@
-// server.js
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -17,9 +17,9 @@ const io = socketIo(server, {
 
 let codeBlocks = {
   'Async Case': '// Async code here',
-  'Promise Example': '// Promise code here',
-  'Callback Function': '// Callback code here',
-  'Event Loop': '// Event loop code here'
+  'Data Structures and Algorithms': '// Data Structures and Algorithms code here',
+  'Design Patterns': '// Design Patterns code here',
+  'Others': '// Others code here'
 };
 
 let codeBlockMentors = {}; // Store the mentor of each code block
@@ -45,7 +45,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
-    // Additional logic can be added here for when a mentor disconnects
   });
 });
 
