@@ -8,6 +8,8 @@ const path = require('path');
 const app = express();
 app.use(cors());
 
+const server = http.createServer(app);
+
 const io = socketIo(server, {
   cors: {
     origin: ["http://localhost:3000", "https://jstutorhub-production.up.railway.app/"],
