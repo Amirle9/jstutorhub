@@ -98,7 +98,7 @@ const CodeBlock = () => {
         {role === 'student' && (
           <textarea
             ref={textareaRef}
-            defaultValue={code}
+            defaultValue={codeRef.current}
             onChange={handleCodeChange}
             style={{
               position: 'absolute',
